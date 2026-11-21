@@ -51,26 +51,27 @@ if (musicBtn) {
     }, { passive: true });
 });
 
-// ================= 7 ẢNH SINH VẬT + 1 ẢNH NỀN TRÊN GITHUB =================
-// facing: chiều đầu của sinh vật trong ảnh gốc ('right' = nhìn sang phải, 'left' = nhìn sang trái)
+// ================= 12 ẢNH SINH VẬT + 1 ẢNH NỀN TRÊN GITHUB =================
+// Mỗi con vật sẽ được nhân đôi (x2) và bơi có trật tự theo tầng riêng, không dính chùm
 const creatureDefs = [
-    { key: 'img3096', src: 'IMG_3096.jpeg', facing: 'right', size: 88,  speed: 1.65 },
-    { key: 'img3100', src: 'IMG_3100.jpeg', facing: 'right', size: 145, speed: 1.55 },
-    { key: 'img3101', src: 'IMG_3101.jpeg', facing: 'right', size: 96,  speed: 1.50 },
-    { key: 'img3103', src: 'IMG_3103.jpeg', facing: 'right', size: 94,  speed: 1.80 },
-    { key: 'img3104', src: 'IMG_3104.jpeg', facing: 'left',  size: 98,  speed: 1.40 },
-    { key: 'img3105', src: 'IMG_3105.jpeg', facing: 'left',  size: 95,  speed: 1.60 },
-    { key: 'img3114', src: 'IMG_3114.jpeg', facing: 'right', size: 92,  speed: 1.25 }
+    { key: 'img3096', src: 'IMG_3096.jpeg', facing: 'right', size: 84,  speed: 1.55, laneY: 0.25 },
+    { key: 'img3100', src: 'IMG_3100.jpeg', facing: 'right', size: 132, speed: 1.40, laneY: 0.31 },
+    { key: 'img3101', src: 'IMG_3101.jpeg', facing: 'right', size: 90,  speed: 1.45, laneY: 0.37 },
+    { key: 'img3103', src: 'IMG_3103.jpeg', facing: 'right', size: 88,  speed: 1.65, laneY: 0.43 },
+    { key: 'img3104', src: 'IMG_3104.jpeg', facing: 'left',  size: 92,  speed: 1.35, laneY: 0.49 },
+    { key: 'img3105', src: 'IMG_3105.jpeg', facing: 'left',  size: 88,  speed: 1.50, laneY: 0.55 },
+    { key: 'img3114', src: 'IMG_3114.jpeg', facing: 'right', size: 86,  speed: 1.20, laneY: 0.61 },
+    { key: 'img3127', src: 'IMG_3127.jpeg', facing: 'right', size: 90,  speed: 1.45, laneY: 0.67 },
+    { key: 'img3128', src: 'IMG_3128.jpeg', facing: 'right', size: 92,  speed: 1.50, laneY: 0.72 },
+    { key: 'img3129', src: 'IMG_3129.jpeg', facing: 'left',  size: 88,  speed: 1.35, laneY: 0.77 },
+    { key: 'img3130', src: 'IMG_3130.jpeg', facing: 'right', size: 90,  speed: 1.55, laneY: 0.82 },
+    { key: 'img3131', src: 'IMG_3131.jpeg', facing: 'left',  size: 92,  speed: 1.40, laneY: 0.87 }
 ];
 
 const BG_SRC = 'IMG_3113.jpeg';
 const images = {};
 let bgImage = null;
 
-/**
- * Tách nền trắng / ô caro từ viền ngoài vào.
- * Chỉ xóa vùng nền sáng/trung tính liên thông từ 4 cạnh, giữ nguyên toàn bộ thân sinh vật.
- */
 function cutWhiteOrCheckerBg(img) {
     try {
         const w = img.naturalWidth || img.width;
@@ -142,12 +143,13 @@ function loadImageItem(src, shouldCutBg) {
     });
 }
 
-// ================= SINH VẬT BƠI & QUAY ĐẦU KHI CHẠM VẠCH =================
+// ================= SINH VẬT BƠI CÓ TRẬT TỰ, KHÔNG DÍNH CHÙM =================
 class Swimmer {
-    constructor({ key, facing, size, x, y, vx, vy }) {
+    constructor({ key, facing, size, x, y, vx, vy, baseLaneY }) {
         this.key = key;
         this.facing = facing;
         this.size = size;
+        this.baseLaneY = baseLaneY;
 
         const raw = images[key];
         const iw = raw ? (raw.width || 120) : 120;
@@ -169,15 +171,33 @@ class Swimmer {
         this.bobPhase = Math.random() * Math.PI * 2;
     }
 
-    update() {
-        this.bobPhase += 0.06;
+    update(allSwimmers) {
+        this.bobPhase += 0.055;
         this.x += this.vx;
-        this.y += this.vy + Math.sin(this.bobPhase) * 0.35;
+
+        const desiredY = height * this.baseLaneY + Math.sin(this.bobPhase * 0.7) * 6;
+        this.y += (desiredY - this.y) * 0.06 + this.vy * 0.2;
+
+        const minDistX = (this.w + 34) * 0.65;
+        const minDistY = (this.h + 22) * 0.65;
+        for (let i = 0; i < allSwimmers.length; i++) {
+            const other = allSwimmers[i];
+            if (other === this) continue;
+            const dx = this.x - other.x;
+            const dy = this.y - other.y;
+            if (Math.abs(dx) < minDistX && Math.abs(dy) < minDistY) {
+                if (Math.abs(dy) >= Math.abs(dx)) {
+                    this.y += (dy >= 0 ? 1 : -1) * 0.6;
+                } else {
+                    this.x += (dx >= 0 ? 1 : -1) * 0.45;
+                }
+            }
+        }
 
         const halfW = this.w * 0.5;
         const halfH = this.h * 0.5;
-        const topLimit = Math.max(halfH + 12, 60);
-        const bottomLimit = Math.min(height - halfH - 12, height - 24);
+        const topLimit = Math.max(halfH + 12, 64);
+        const bottomLimit = Math.max(topLimit + 40, height - halfH - 16);
 
         if (this.x - halfW <= 4 && this.vx < 0) {
             this.x = halfW + 4;
@@ -187,12 +207,12 @@ class Swimmer {
             this.vx = -Math.abs(this.vx);
         }
 
-        if (this.y <= topLimit && this.vy < 0) {
+        if (this.y < topLimit) {
             this.y = topLimit;
-            this.vy = Math.abs(this.vy);
-        } else if (this.y >= bottomLimit && this.vy > 0) {
+            this.vy = Math.abs(this.vy) * 0.5;
+        } else if (this.y > bottomLimit) {
             this.y = bottomLimit;
-            this.vy = -Math.abs(this.vy);
+            this.vy = -Math.abs(this.vy) * 0.5;
         }
     }
 
@@ -208,7 +228,7 @@ class Swimmer {
         if (this.facing === 'left' && this.vx > 0) flipX = -1;
 
         ctx.scale(flipX, 1);
-        ctx.rotate(Math.sin(this.bobPhase * 0.7) * 0.04);
+        ctx.rotate(Math.sin(this.bobPhase * 0.7) * 0.035);
         ctx.drawImage(img, -this.w / 2, -this.h / 2, this.w, this.h);
         ctx.restore();
     }
@@ -290,7 +310,7 @@ function rebuildTextBubbles() {
     octx.fillStyle = '#ffffff';
     octx.textAlign = 'center';
     octx.textBaseline = 'middle';
-    octx.fillText('YEN NHI', width / 2, height * 0.2);
+    octx.fillText('YEN NHI', width / 2, height * 0.18);
 
     const data = octx.getImageData(0, 0, off.width, off.height).data;
     const next = [];
@@ -346,19 +366,29 @@ async function init() {
 
     swimmers = [];
 
-    const slotsY = [0.30, 0.42, 0.52, 0.62, 0.72, 0.36, 0.68];
+    // Nhân đôi (x2) MỖI con vật trong danh sách (đủ 12 loài x 2 = 24 sinh vật)
     creatureDefs.forEach((def, idx) => {
         if (!images[def.key]) return;
-        const dir = idx % 2 === 0 ? 1 : -1;
-        swimmers.push(
-            new Swimmer({
-                ...def,
-                x: width * (0.2 + (idx % 4) * 0.2),
-                y: height * slotsY[idx % slotsY.length],
-                vx: dir * def.speed,
-                vy: (idx % 2 === 0 ? 0.35 : -0.35)
-            })
-        );
+
+        for (let copy = 0; copy < 2; copy++) {
+            const dir = copy === 0 ? 1 : -1;
+            const startX = copy === 0
+                ? width * (0.16 + (idx % 3) * 0.22)
+                : width * (0.52 + (idx % 3) * 0.16);
+            const sizeScale = copy === 0 ? 1.0 : 0.88;
+
+            swimmers.push(
+                new Swimmer({
+                    ...def,
+                    size: def.size * sizeScale,
+                    x: Math.min(width - 120, Math.max(120, startX)),
+                    y: height * def.laneY,
+                    vx: dir * def.speed * (copy === 0 ? 1.0 : 0.92),
+                    vy: (copy === 0 ? 0.2 : -0.2),
+                    baseLaneY: def.laneY
+                })
+            );
+        }
     });
 
     bubbles = [];
@@ -393,7 +423,7 @@ async function init() {
         }
 
         swimmers.forEach((s) => {
-            s.update();
+            s.update(swimmers);
             s.draw();
         });
 
