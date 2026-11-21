@@ -12,8 +12,13 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// ================= ÂM THANH (.MP4) & MÀN HÌNH CHÀO =================
+// ================= ÂM THANH (.M4A) & MÀN HÌNH CHÀO =================
 let isPlaying = false;
+
+if (bgAudio) {
+    bgAudio.src = 'phimtat.vn-audio-3657.m4a';
+    bgAudio.load();
+}
 
 function playAudioNow() {
     if (!bgAudio) return Promise.resolve(false);
@@ -39,7 +44,6 @@ function toggleAudio() {
     }
 }
 
-// Bấm vào màn hình chào: phát nhạc ngay lập tức rồi mở hồ cá
 if (splashScreen) {
     splashScreen.addEventListener('pointerdown', (e) => {
         e.preventDefault();
@@ -48,7 +52,6 @@ if (splashScreen) {
     });
 }
 
-// Nút bật/tắt âm thanh ở góc dưới
 if (audioToggle) {
     audioToggle.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -56,12 +59,10 @@ if (audioToggle) {
     });
 }
 
-// Thử tự động phát ngay khi tải trang (nếu trình duyệt cho phép)
 window.addEventListener('DOMContentLoaded', () => {
     playAudioNow();
 });
 
-// Bắt ngay thao tác chạm/bấm đầu tiên trên trang nếu chưa phát
 ['pointerdown', 'touchstart', 'click', 'keydown'].forEach(evtName => {
     document.addEventListener(evtName, () => {
         if (!isPlaying && bgAudio && bgAudio.paused) {
@@ -70,24 +71,23 @@ window.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
 });
 
-// ================= DANH SÁCH 10 FILE ẢNH .JPEG TRÊN GITHUB =================
-// Nếu ảnh nào bị nhầm vị trí, bạn chỉ cần đổi tên file ở cột src cho khớp
+// ================= CẤU HÌNH ẢNH (NỀN = IMG_3113.jpeg) =================
 const assetConfig = [
-    { name: 'crab', src: 'IMG_3100.jpeg', removeBg: true, facing: 'none', type: 'bottom', scale: 0.16 },
-    { name: 'bg', src: 'IMG_3101.jpeg', removeBg: false },
-    { name: 'stingray', src: 'IMG_3103.jpeg', removeBg: true, facing: 'right', type: 'swim', scale: 0.25 },
-    { name: 'pufferfish', src: 'IMG_3104.jpeg', removeBg: true, facing: 'right', type: 'swim', scale: 0.15 },
-    { name: 'clownfish', src: 'IMG_3107.jpeg', removeBg: true, facing: 'right', type: 'swim', scale: 0.12 },
-    { name: 'moorish', src: 'IMG_3108.jpeg', removeBg: true, facing: 'left', type: 'swim', scale: 0.16 },
-    { name: 'bluetang', src: 'IMG_3109.jpeg', removeBg: true, facing: 'left', type: 'swim', scale: 0.15 },
-    { name: 'seahorse', src: 'IMG_3110.jpeg', removeBg: true, facing: 'right', type: 'float', scale: 0.14 },
-    { name: 'starfish', src: 'IMG_3113.jpeg', removeBg: true, facing: 'none', type: 'bottom', scale: 0.12 },
-    { name: 'turtle', src: 'IMG_3114.jpeg', removeBg: true, facing: 'right', type: 'swim', scale: 0.26 }
+    { name: 'bg', src: 'IMG_3113.jpeg', removeBg: false },
+    { name: 'crab', src: 'IMG_3100.jpeg', removeBg: true, facing: 'none', type: 'bottom', scale: 0.15 },
+    { name: 'starfish', src: 'IMG_3101.jpeg', removeBg: true, facing: 'none', type: 'bottom', scale: 0.11 },
+    { name: 'stingray', src: 'IMG_3103.jpeg', removeBg: true, facing: 'right', type: 'glide', scale: 0.24 },
+    { name: 'pufferfish', src: 'IMG_3104.jpeg', removeBg: true, facing: 'right', type: 'swim', scale: 0.14 },
+    { name: 'clownfish', src: 'IMG_3107.jpeg', removeBg: true, facing: 'right', type: 'swim', scale: 0.11 },
+    { name: 'moorish', src: 'IMG_3108.jpeg', removeBg: true, facing: 'left', type: 'swim', scale: 0.15 },
+    { name: 'bluetang', src: 'IMG_3109.jpeg', removeBg: true, facing: 'left', type: 'swim', scale: 0.14 },
+    { name: 'seahorse', src: 'IMG_3110.jpeg', removeBg: true, facing: 'right', type: 'float', scale: 0.13 },
+    { name: 'turtle', src: 'IMG_3114.jpeg', removeBg: true, facing: 'right', type: 'glide', scale: 0.25 }
 ];
 
 const loadedAssets = {};
 
-// Thuật toán tách nền trắng / ô caro an toàn cho ảnh .jpeg
+// Tách nền trắng / caro an toàn từ viền ngoài, bảo toàn chi tiết bên trong
 function removeBackgroundSafe(img) {
     try {
         const offCanvas = document.createElement('canvas');
@@ -165,7 +165,7 @@ function loadAllAssets() {
     return Promise.all(promises);
 }
 
-// ================= SINH VẬT BIỂN =================
+// ================= SINH VẬT BƠI TỰ NHIÊN NHƯ HỒ CÁ THẬT =================
 class SeaCreature {
     constructor(asset, customScale = null) {
         this.asset = asset;
@@ -173,7 +173,7 @@ class SeaCreature {
 
         const imgW = this.img.width || 200;
         const imgH = this.img.height || 200;
-        const baseSize = Math.max(75, Math.min(width, height) * (customScale || asset.scale));
+        const baseSize = Math.max(70, Math.min(width, height) * (customScale || asset.scale));
         const ratio = imgW / imgH;
 
         if (ratio >= 1) {
@@ -193,56 +193,65 @@ class SeaCreature {
     resetPosition(initial = false) {
         if (this.type === 'bottom') {
             this.x = Math.random() * Math.max(100, width - this.w) + this.w / 2;
-            this.y = height - this.h * 0.65 - Math.random() * (height * 0.08);
-            this.vx = (this.asset.name === 'crab') ? (Math.random() > 0.5 ? 0.5 : -0.5) : 0;
+            this.y = height - this.h * 0.62 - Math.random() * (height * 0.06);
+            this.baseSpeed = (this.asset.name === 'crab') ? (0.35 + Math.random() * 0.25) : 0;
+            this.dir = Math.random() > 0.5 ? 1 : -1;
         } else if (this.type === 'float') {
-            this.x = Math.random() * width;
-            this.y = height * 0.35 + Math.random() * (height * 0.4);
-            this.vx = (Math.random() > 0.5 ? 1 : -1) * (0.35 + Math.random() * 0.4);
+            this.dir = Math.random() > 0.5 ? 1 : -1;
+            this.baseSpeed = 0.3 + Math.random() * 0.25;
+            this.x = initial ? Math.random() * width : (this.dir > 0 ? -this.w : width + this.w);
+            this.y = height * 0.36 + Math.random() * (height * 0.36);
         } else {
-            const goRight = Math.random() > 0.5;
-            this.vx = (goRight ? 1 : -1) * (0.9 + Math.random() * 1.4);
-            this.x = initial ? Math.random() * width : (goRight ? -this.w : width + this.w);
-            this.y = height * 0.16 + Math.random() * (height * 0.62);
+            this.dir = Math.random() > 0.5 ? 1 : -1;
+            this.baseSpeed = (this.type === 'glide') ? (0.65 + Math.random() * 0.45) : (0.85 + Math.random() * 0.75);
+            this.x = initial ? Math.random() * width : (this.dir > 0 ? -this.w : width + this.w);
+            this.y = height * 0.18 + Math.random() * (height * 0.56);
+            this.targetY = this.y;
         }
     }
 
     update() {
-        this.phase += 0.045;
+        this.phase += (this.type === 'glide') ? 0.032 : 0.055;
 
         if (this.type === 'bottom') {
             if (this.asset.name === 'crab') {
-                this.x += this.vx;
-                if (this.x < this.w * 0.6 || this.x > width - this.w * 0.6) this.vx *= -1;
-                this.tilt = Math.sin(this.phase * 2) * 0.05;
+                const step = Math.max(0, Math.sin(this.phase * 1.6));
+                this.x += this.dir * this.baseSpeed * (0.3 + step * 0.9);
+                if (this.x < this.w * 0.65) {
+                    this.x = this.w * 0.65;
+                    this.dir = 1;
+                } else if (this.x > width - this.w * 0.65) {
+                    this.x = width - this.w * 0.65;
+                    this.dir = -1;
+                }
+                this.tilt = Math.sin(this.phase * 1.6) * 0.04;
             } else {
-                this.tilt = Math.sin(this.phase * 0.5) * 0.04;
+                this.tilt = Math.sin(this.phase * 0.4) * 0.03;
             }
         } else if (this.type === 'float') {
-            this.x += this.vx;
-            this.y += Math.sin(this.phase) * 0.65;
-            this.tilt = Math.sin(this.phase * 0.8) * 0.12;
-            if (this.x < -this.w) this.x = width + this.w;
-            if (this.x > width + this.w) this.x = -this.w;
-        } else {
-            this.x += this.vx;
-            this.y += Math.sin(this.phase) * 0.75;
-            this.tilt = Math.cos(this.phase) * 0.06;
+            this.x += this.dir * this.baseSpeed;
+            this.y += Math.sin(this.phase * 0.8) * 0.5;
+            this.tilt = this.dir * (0.06 + Math.sin(this.phase * 0.7) * 0.06);
 
-            if (this.vx > 0 && this.x > width + this.w) {
-                if (Math.random() > 0.35) {
-                    this.vx = -this.vx;
-                } else {
-                    this.x = -this.w;
-                    this.y = height * 0.16 + Math.random() * (height * 0.62);
-                }
-            } else if (this.vx < 0 && this.x < -this.w) {
-                if (Math.random() > 0.35) {
-                    this.vx = -this.vx;
-                } else {
-                    this.x = width + this.w;
-                    this.y = height * 0.16 + Math.random() * (height * 0.62);
-                }
+            if (this.dir > 0 && this.x > width + this.w) {
+                this.x = -this.w;
+            } else if (this.dir < 0 && this.x < -this.w) {
+                this.x = width + this.w;
+            }
+        } else {
+            const thrust = 0.78 + Math.sin(this.phase) * 0.28;
+            this.x += this.dir * this.baseSpeed * thrust;
+
+            if (Math.random() < 0.004) {
+                this.targetY = height * 0.18 + Math.random() * (height * 0.56);
+            }
+            this.y += (this.targetY - this.y) * 0.008 + Math.sin(this.phase * 0.6) * 0.35;
+            this.tilt = Math.sin(this.phase * 0.6) * 0.045;
+
+            if (this.dir > 0 && this.x > width + this.w) {
+                this.resetPosition(false);
+            } else if (this.dir < 0 && this.x < -this.w) {
+                this.resetPosition(false);
             }
         }
     }
@@ -253,14 +262,14 @@ class SeaCreature {
         ctx.translate(this.x, this.y);
 
         let flipX = 1;
-        if (this.facing === 'right' && this.vx < 0) flipX = -1;
-        if (this.facing === 'left' && this.vx > 0) flipX = -1;
+        if (this.facing === 'right' && this.dir < 0) flipX = -1;
+        if (this.facing === 'left' && this.dir > 0) flipX = -1;
 
         ctx.scale(flipX, 1);
         ctx.rotate(this.tilt || 0);
 
-        const swimStretch = 1 + Math.sin(this.phase * 2) * 0.02;
-        ctx.scale(swimStretch, 1);
+        const flex = 1 + Math.sin(this.phase) * 0.025;
+        ctx.scale(flex, 1 / Math.sqrt(flex));
 
         ctx.drawImage(this.img, -this.w / 2, -this.h / 2, this.w, this.h);
         ctx.restore();
@@ -276,8 +285,8 @@ class Bubble {
 
         this.x = Math.random() * width;
         this.y = height + Math.random() * 200;
-        this.r = isTextBubble ? (Math.random() * 1.8 + 2.4) : (Math.random() * 4 + 1.5);
-        this.speed = Math.random() * 1.5 + 0.8;
+        this.r = isTextBubble ? (Math.random() * 1.5 + 2.0) : (Math.random() * 4 + 1.5);
+        this.speed = Math.random() * 1.4 + 0.7;
         this.wobble = Math.random() * Math.PI * 2;
     }
 
@@ -309,7 +318,7 @@ class Bubble {
         );
         if (this.isTextBubble) {
             grad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
-            grad.addColorStop(0.5, 'rgba(173, 232, 244, 0.6)');
+            grad.addColorStop(0.5, 'rgba(173, 232, 244, 0.65)');
             grad.addColorStop(1, 'rgba(0, 180, 216, 0.25)');
         } else {
             grad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
@@ -336,16 +345,16 @@ function createTextBubbles(text) {
     textCanvas.height = height;
     const tCtx = textCanvas.getContext('2d');
 
-    const fontSize = Math.min(width * 0.16, 120);
+    const fontSize = Math.min(width * 0.125, 110);
     tCtx.font = `900 ${fontSize}px "Arial Black", Impact, sans-serif`;
     tCtx.fillStyle = '#ffffff';
     tCtx.textAlign = 'center';
     tCtx.textBaseline = 'middle';
-    tCtx.fillText(text, width / 2, height * 0.24);
+    tCtx.fillText(text, width / 2, height * 0.22);
 
     const imgData = tCtx.getImageData(0, 0, width, height).data;
     const bubbles = [];
-    const gap = Math.max(5, Math.floor(fontSize / 15));
+    const gap = Math.max(5, Math.floor(fontSize / 14));
 
     for (let y = 0; y < height; y += gap) {
         for (let x = 0; x < width; x += gap) {
@@ -358,24 +367,51 @@ function createTextBubbles(text) {
     return bubbles;
 }
 
-function drawLightRays(time) {
+// ================= HIỆU ỨNG MẶT NƯỚC & FISH-EYE =================
+function drawWaterSurfaceAndFishEye(time) {
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
     for (let i = 0; i < 4; i++) {
-        const x = width * (0.2 + i * 0.2) + Math.sin(time * 0.0008 + i) * 60;
-        const grad = ctx.createLinearGradient(x, 0, x + 120, height * 0.85);
-        grad.addColorStop(0, 'rgba(130, 220, 255, 0.14)');
-        grad.addColorStop(1, 'rgba(130, 220, 255, 0)');
+        const x = width * (0.18 + i * 0.21) + Math.sin(time * 0.0007 + i * 1.4) * 45;
+        const grad = ctx.createLinearGradient(x, 0, x + 90, height * 0.75);
+        grad.addColorStop(0, 'rgba(140, 225, 255, 0.13)');
+        grad.addColorStop(1, 'rgba(140, 225, 255, 0)');
 
         ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.moveTo(x - 40, 0);
-        ctx.lineTo(x + 60, 0);
-        ctx.lineTo(x + 240, height * 0.85);
-        ctx.lineTo(x - 100, height * 0.85);
+        ctx.moveTo(x - 35, 0);
+        ctx.lineTo(x + 45, 0);
+        ctx.lineTo(x + 190, height * 0.75);
+        ctx.lineTo(x - 85, height * 0.75);
         ctx.closePath();
         ctx.fill();
     }
+
+    ctx.strokeStyle = 'rgba(200, 245, 255, 0.28)';
+    ctx.lineWidth = 2;
+    for (let row = 0; row < 3; row++) {
+        const baseY = 18 + row * 12;
+        ctx.beginPath();
+        for (let x = 0; x <= width; x += 24) {
+            const wy = baseY + Math.sin(x * 0.02 + time * 0.0022 + row) * 4.5;
+            if (x === 0) ctx.moveTo(x, wy);
+            else ctx.lineTo(x, wy);
+        }
+        ctx.stroke();
+    }
+    ctx.restore();
+
+    ctx.save();
+    const maxR = Math.hypot(width, height) * 0.56;
+    const vig = ctx.createRadialGradient(
+        width / 2, height / 2, Math.min(width, height) * 0.34,
+        width / 2, height / 2, maxR
+    );
+    vig.addColorStop(0, 'rgba(0, 15, 30, 0)');
+    vig.addColorStop(0.75, 'rgba(0, 15, 30, 0.18)');
+    vig.addColorStop(1, 'rgba(0, 8, 18, 0.65)');
+    ctx.fillStyle = vig;
+    ctx.fillRect(0, 0, width, height);
     ctx.restore();
 }
 
@@ -426,7 +462,10 @@ loadAllAssets().then(() => {
             ctx.drawImage(bg, (width - nw) / 2, (height - nh) / 2, nw, nh);
         }
 
-        drawLightRays(time);
+        creatures.forEach(c => {
+            c.update(time);
+            c.draw();
+        });
 
         bgBubbles.forEach(b => {
             b.update(time);
@@ -438,10 +477,7 @@ loadAllAssets().then(() => {
             b.draw();
         });
 
-        creatures.forEach(c => {
-            c.update();
-            c.draw();
-        });
+        drawWaterSurfaceAndFishEye(time);
 
         requestAnimationFrame(animate);
     }
