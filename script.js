@@ -12,17 +12,16 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// ================= XỬ LÝ ÂM THANH (.MP4) =================
+// ================= ÂM THANH (.MP4) =================
 let isPlaying = false;
 
 function toggleAudio() {
+    if (!bgAudio) return;
     if (bgAudio.paused) {
         bgAudio.play().then(() => {
             isPlaying = true;
             audioToggle.textContent = '🔊 Tắt âm thanh';
-        }).catch(err => {
-            console.warn('Trình duyệt chưa cho phép phát tự động:', err);
-        });
+        }).catch(() => {});
     } else {
         bgAudio.pause();
         isPlaying = false;
@@ -30,109 +29,109 @@ function toggleAudio() {
     }
 }
 
-audioToggle.addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleAudio();
-});
+if (audioToggle) {
+    audioToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleAudio();
+    });
+}
 
-// Tự động bật tiếng ngay lần đầu người dùng chạm/click bất kỳ đâu trên màn hình
 document.addEventListener('click', () => {
-    if (!isPlaying && bgAudio.paused) {
+    if (!isPlaying && bgAudio && bgAudio.paused) {
         bgAudio.play().then(() => {
             isPlaying = true;
-            audioToggle.textContent = '🔊 Tắt âm thanh';
+            if (audioToggle) audioToggle.textContent = '🔊 Tắt âm thanh';
         }).catch(() => {});
     }
 }, { once: true });
 
-// ================= CẤU HÌNH ẢNH .JPEG =================
+// ================= DANH SÁCH 10 FILE ẢNH TRÊN GITHUB =================
+// Nếu ảnh nào bị ngược vị trí (ví dụ nền nằm ở IMG_3114.jpeg), bạn chỉ cần đổi tên file ở cột src
 const assetConfig = [
-    { name: 'bg', src: 'images/bg.jpeg', removeBg: false },
-    { name: 'crab', src: 'images/crab.jpeg', removeBg: true, facing: 'none', type: 'bottom', scale: 0.14 },
-    { name: 'starfish', src: 'images/starfish.jpeg', removeBg: true, facing: 'none', type: 'bottom', scale: 0.11 },
-    { name: 'stingray', src: 'images/stingray.jpeg', removeBg: true, facing: 'right', type: 'swim', scale: 0.24 },
-    { name: 'pufferfish', src: 'images/pufferfish.jpeg', removeBg: true, facing: 'right', type: 'swim', scale: 0.14 },
-    { name: 'clownfish', src: 'images/clownfish.jpeg', removeBg: true, facing: 'right', type: 'swim', scale: 0.11 },
-    { name: 'moorish', src: 'images/moorish.jpeg', removeBg: true, facing: 'left', type: 'swim', scale: 0.15 },
-    { name: 'bluetang', src: 'images/bluetang.jpeg', removeBg: true, facing: 'left', type: 'swim', scale: 0.14 },
-    { name: 'seahorse', src: 'images/seahorse.jpeg', removeBg: true, facing: 'right', type: 'float', scale: 0.13 },
-    { name: 'turtle', src: 'images/turtle.jpeg', removeBg: true, facing: 'right', type: 'swim', scale: 0.25 }
+    { name: 'crab', src: 'IMG_3100.jpeg', removeBg: true, facing: 'none', type: 'bottom', scale: 0.16 },
+    { name: 'bg', src: 'IMG_3101.jpeg', removeBg: false },
+    { name: 'stingray', src: 'IMG_3103.jpeg', removeBg: true, facing: 'right', type: 'swim', scale: 0.25 },
+    { name: 'pufferfish', src: 'IMG_3104.jpeg', removeBg: true, facing: 'right', type: 'swim', scale: 0.15 },
+    { name: 'clownfish', src: 'IMG_3107.jpeg', removeBg: true, facing: 'right', type: 'swim', scale: 0.12 },
+    { name: 'moorish', src: 'IMG_3108.jpeg', removeBg: true, facing: 'left', type: 'swim', scale: 0.16 },
+    { name: 'bluetang', src: 'IMG_3109.jpeg', removeBg: true, facing: 'left', type: 'swim', scale: 0.15 },
+    { name: 'seahorse', src: 'IMG_3110.jpeg', removeBg: true, facing: 'right', type: 'float', scale: 0.14 },
+    { name: 'starfish', src: 'IMG_3113.jpeg', removeBg: true, facing: 'none', type: 'bottom', scale: 0.12 },
+    { name: 'turtle', src: 'IMG_3114.jpeg', removeBg: true, facing: 'right', type: 'swim', scale: 0.26 }
 ];
 
 const loadedAssets = {};
 
-/**
- * Thuật toán Flood-Fill tách nền tối ưu cho ảnh .jpeg
- * Khử sạch cả các hạt nhiễu nén JPEG và ô caro nền
- */
-function removeBackground(img) {
-    const offCanvas = document.createElement('canvas');
-    const w = offCanvas.width = img.width;
-    const h = offCanvas.height = img.height;
-    const offCtx = offCanvas.getContext('2d');
-    offCtx.drawImage(img, 0, 0);
+// Thuật toán tách nền trắng / ô caro an toàn
+function removeBackgroundSafe(img) {
+    try {
+        const offCanvas = document.createElement('canvas');
+        const w = offCanvas.width = img.naturalWidth || img.width;
+        const h = offCanvas.height = img.naturalHeight || img.height;
+        if (!w || !h) return img;
 
-    const imgData = offCtx.getImageData(0, 0, w, h);
-    const data = imgData.data;
-    const visited = new Uint8Array(w * h);
-    const queue = [];
+        const offCtx = offCanvas.getContext('2d');
+        offCtx.drawImage(img, 0, 0);
 
-    function isBgPixel(idx) {
-        const r = data[idx];
-        const g = data[idx + 1];
-        const b = data[idx + 2];
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
-        // Ngưỡng tối ưu để ăn sạch viền nén của ảnh JPEG
-        return max > 175 && (max - min) < 35;
-    }
+        const imgData = offCtx.getImageData(0, 0, w, h);
+        const data = imgData.data;
+        const visited = new Uint8Array(w * h);
+        const queue = [];
 
-    for (let x = 0; x < w; x++) {
-        queue.push(x, 0);
-        queue.push(x, h - 1);
-    }
-    for (let y = 0; y < h; y++) {
-        queue.push(0, y);
-        queue.push(w - 1, y);
-    }
-
-    let head = 0;
-    while (head < queue.length) {
-        const x = queue[head++];
-        const y = queue[head++];
-        if (x < 0 || x >= w || y < 0 || y >= h) continue;
-
-        const pos = y * w + x;
-        if (visited[pos]) continue;
-        visited[pos] = 1;
-
-        const idx = pos * 4;
-        if (isBgPixel(idx)) {
-            data[idx + 3] = 0;
-            queue.push(x + 1, y, x - 1, y, x, y + 1, x, y - 1);
-        } else {
-            data[idx + 3] = 225;
+        function isBgPixel(idx) {
+            const r = data[idx];
+            const g = data[idx + 1];
+            const b = data[idx + 2];
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            return max > 180 && (max - min) < 35;
         }
-    }
 
-    offCtx.putImageData(imgData, 0, 0);
-    return offCanvas;
+        for (let x = 0; x < w; x++) {
+            queue.push(x, 0, x, h - 1);
+        }
+        for (let y = 0; y < h; y++) {
+            queue.push(0, y, w - 1, y);
+        }
+
+        let head = 0;
+        while (head < queue.length) {
+            const x = queue[head++];
+            const y = queue[head++];
+            if (x < 0 || x >= w || y < 0 || y >= h) continue;
+
+            const pos = y * w + x;
+            if (visited[pos]) continue;
+            visited[pos] = 1;
+
+            const idx = pos * 4;
+            if (isBgPixel(idx)) {
+                data[idx + 3] = 0;
+                queue.push(x + 1, y, x - 1, y, x, y + 1, x, y - 1);
+            }
+        }
+
+        offCtx.putImageData(imgData, 0, 0);
+        return offCanvas;
+    } catch (e) {
+        return img;
+    }
 }
 
 function loadAllAssets() {
     const promises = assetConfig.map(item => {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             const img = new Image();
-            img.crossOrigin = "Anonymous";
+            img.crossOrigin = 'anonymous';
             img.onload = () => {
                 loadedAssets[item.name] = {
                     ...item,
-                    image: item.removeBg ? removeBackground(img) : img
+                    image: item.removeBg ? removeBackgroundSafe(img) : img
                 };
                 resolve();
             };
             img.onerror = () => {
-                console.warn(`Không tìm thấy ảnh: ${item.src}`);
+                console.warn('Không tải được:', item.src);
                 resolve();
             };
             img.src = item.src;
@@ -141,14 +140,17 @@ function loadAllAssets() {
     return Promise.all(promises);
 }
 
-// ================= CLASS SINH VẬT BIỂN =================
+// ================= SINH VẬT BIỂN =================
 class SeaCreature {
     constructor(asset, customScale = null) {
         this.asset = asset;
         this.img = asset.image;
-        const baseSize = Math.min(width, height) * (customScale || asset.scale);
-        const ratio = this.img.width / this.img.height;
-        
+
+        const imgW = this.img.width || 200;
+        const imgH = this.img.height || 200;
+        const baseSize = Math.max(75, Math.min(width, height) * (customScale || asset.scale));
+        const ratio = imgW / imgH;
+
         if (ratio >= 1) {
             this.w = baseSize;
             this.h = baseSize / ratio;
@@ -165,65 +167,63 @@ class SeaCreature {
 
     resetPosition(initial = false) {
         if (this.type === 'bottom') {
-            this.x = Math.random() * (width - this.w) + this.w / 2;
+            this.x = Math.random() * Math.max(100, width - this.w) + this.w / 2;
             this.y = height - this.h * 0.65 - Math.random() * (height * 0.08);
-            this.vx = (this.asset.name === 'crab') ? (Math.random() > 0.5 ? 0.4 : -0.4) : 0;
-            this.vy = 0;
+            this.vx = (this.asset.name === 'crab') ? (Math.random() > 0.5 ? 0.5 : -0.5) : 0;
         } else if (this.type === 'float') {
             this.x = Math.random() * width;
             this.y = height * 0.35 + Math.random() * (height * 0.4);
-            this.vx = (Math.random() > 0.5 ? 1 : -1) * (0.3 + Math.random() * 0.4);
-            this.vy = 0;
+            this.vx = (Math.random() > 0.5 ? 1 : -1) * (0.35 + Math.random() * 0.4);
         } else {
             const goRight = Math.random() > 0.5;
-            this.vx = (goRight ? 1 : -1) * (0.7 + Math.random() * 1.3);
+            this.vx = (goRight ? 1 : -1) * (0.9 + Math.random() * 1.4);
             this.x = initial ? Math.random() * width : (goRight ? -this.w : width + this.w);
-            this.y = height * 0.15 + Math.random() * (height * 0.65);
-            this.vy = 0;
+            this.y = height * 0.16 + Math.random() * (height * 0.62);
         }
     }
 
     update() {
-        this.phase += 0.04;
+        this.phase += 0.045;
 
         if (this.type === 'bottom') {
             if (this.asset.name === 'crab') {
                 this.x += this.vx;
-                if (this.x < this.w || this.x > width - this.w) this.vx *= -1;
+                if (this.x < this.w * 0.6 || this.x > width - this.w * 0.6) this.vx *= -1;
                 this.tilt = Math.sin(this.phase * 2) * 0.05;
             } else {
                 this.tilt = Math.sin(this.phase * 0.5) * 0.04;
             }
         } else if (this.type === 'float') {
             this.x += this.vx;
-            this.y += Math.sin(this.phase) * 0.6;
+            this.y += Math.sin(this.phase) * 0.65;
             this.tilt = Math.sin(this.phase * 0.8) * 0.12;
             if (this.x < -this.w) this.x = width + this.w;
             if (this.x > width + this.w) this.x = -this.w;
         } else {
             this.x += this.vx;
-            this.y += Math.sin(this.phase) * 0.7;
+            this.y += Math.sin(this.phase) * 0.75;
             this.tilt = Math.cos(this.phase) * 0.06;
 
             if (this.vx > 0 && this.x > width + this.w) {
-                if (Math.random() > 0.4) {
+                if (Math.random() > 0.35) {
                     this.vx = -this.vx;
                 } else {
                     this.x = -this.w;
-                    this.y = height * 0.15 + Math.random() * (height * 0.65);
+                    this.y = height * 0.16 + Math.random() * (height * 0.62);
                 }
             } else if (this.vx < 0 && this.x < -this.w) {
-                if (Math.random() > 0.4) {
+                if (Math.random() > 0.35) {
                     this.vx = -this.vx;
                 } else {
                     this.x = width + this.w;
-                    this.y = height * 0.15 + Math.random() * (height * 0.65);
+                    this.y = height * 0.16 + Math.random() * (height * 0.62);
                 }
             }
         }
     }
 
     draw() {
+        if (!this.img) return;
         ctx.save();
         ctx.translate(this.x, this.y);
 
@@ -242,7 +242,7 @@ class SeaCreature {
     }
 }
 
-// ================= HỆ THỐNG BONG BÓNG & CHỮ "YEN NHI" =================
+// ================= BONG BÓNG & CHỮ "YEN NHI" =================
 class Bubble {
     constructor(targetX = null, targetY = null, isTextBubble = false) {
         this.isTextBubble = isTextBubble;
@@ -251,7 +251,7 @@ class Bubble {
 
         this.x = Math.random() * width;
         this.y = height + Math.random() * 200;
-        this.r = isTextBubble ? (Math.random() * 2.5 + 3.2) : (Math.random() * 4 + 1.5);
+        this.r = isTextBubble ? (Math.random() * 1.8 + 2.4) : (Math.random() * 4 + 1.5);
         this.speed = Math.random() * 1.5 + 0.8;
         this.wobble = Math.random() * Math.PI * 2;
     }
@@ -259,11 +259,10 @@ class Bubble {
     update(time) {
         this.wobble += 0.05;
         if (this.isTextBubble) {
-            const floatY = this.targetY + Math.sin(time * 0.002 + this.targetX * 0.02) * 6;
-            const floatX = this.targetX + Math.cos(time * 0.002 + this.targetY * 0.02) * 3;
-
-            this.x += (floatX - this.x) * 0.035;
-            this.y += (floatY - this.y) * 0.035;
+            const floatY = this.targetY + Math.sin(time * 0.002 + this.targetX * 0.02) * 5;
+            const floatX = this.targetX + Math.cos(time * 0.002 + this.targetY * 0.02) * 2.5;
+            this.x += (floatX - this.x) * 0.04;
+            this.y += (floatY - this.y) * 0.04;
         } else {
             this.y -= this.speed;
             this.x += Math.sin(this.wobble) * 0.6;
@@ -285,7 +284,7 @@ class Bubble {
         );
         if (this.isTextBubble) {
             grad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
-            grad.addColorStop(0.5, 'rgba(173, 232, 244, 0.55)');
+            grad.addColorStop(0.5, 'rgba(173, 232, 244, 0.6)');
             grad.addColorStop(1, 'rgba(0, 180, 216, 0.25)');
         } else {
             grad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
@@ -294,9 +293,8 @@ class Bubble {
 
         ctx.fillStyle = grad;
         ctx.fill();
-
-        ctx.strokeStyle = this.isTextBubble ? 'rgba(255, 255, 255, 0.75)' : 'rgba(255, 255, 255, 0.3)';
-        ctx.lineWidth = 0.8;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 0.7;
         ctx.stroke();
 
         ctx.beginPath();
@@ -313,16 +311,16 @@ function createTextBubbles(text) {
     textCanvas.height = height;
     const tCtx = textCanvas.getContext('2d');
 
-    const fontSize = Math.min(width * 0.13, 135);
+    const fontSize = Math.min(width * 0.16, 120);
     tCtx.font = `900 ${fontSize}px "Arial Black", Impact, sans-serif`;
     tCtx.fillStyle = '#ffffff';
     tCtx.textAlign = 'center';
     tCtx.textBaseline = 'middle';
-    tCtx.fillText(text, width / 2, height * 0.26);
+    tCtx.fillText(text, width / 2, height * 0.24);
 
     const imgData = tCtx.getImageData(0, 0, width, height).data;
     const bubbles = [];
-    const gap = Math.max(7, Math.floor(fontSize / 15));
+    const gap = Math.max(5, Math.floor(fontSize / 15));
 
     for (let y = 0; y < height; y += gap) {
         for (let x = 0; x < width; x += gap) {
@@ -356,13 +354,13 @@ function drawLightRays(time) {
     ctx.restore();
 }
 
-// ================= KHỞI CHẠY HỒ CÁ =================
+// ================= KHỞI CHẠY =================
 let creatures = [];
 let bgBubbles = [];
 let textBubbles = [];
 
 loadAllAssets().then(() => {
-    loadingEl.style.opacity = '0';
+    if (loadingEl) loadingEl.style.display = 'none';
 
     const spawnPlan = [
         { name: 'turtle', count: 1 },
@@ -386,7 +384,7 @@ loadAllAssets().then(() => {
         }
     });
 
-    for (let i = 0; i < 70; i++) {
+    for (let i = 0; i < 55; i++) {
         bgBubbles.push(new Bubble());
     }
 
@@ -397,9 +395,11 @@ loadAllAssets().then(() => {
 
         if (loadedAssets.bg && loadedAssets.bg.image) {
             const bg = loadedAssets.bg.image;
-            const scale = Math.max(width / bg.width, height / bg.height);
-            const nw = bg.width * scale;
-            const nh = bg.height * scale;
+            const bgW = bg.naturalWidth || bg.width;
+            const bgH = bg.naturalHeight || bg.height;
+            const scale = Math.max(width / bgW, height / bgH);
+            const nw = bgW * scale;
+            const nh = bgH * scale;
             ctx.drawImage(bg, (width - nw) / 2, (height - nh) / 2, nw, nh);
         }
 
@@ -427,7 +427,5 @@ loadAllAssets().then(() => {
 });
 
 window.addEventListener('resize', () => {
-    if (textBubbles.length > 0) {
-        textBubbles = createTextBubbles("YEN NHI");
-    }
+    textBubbles = createTextBubbles("YEN NHI");
 });
