@@ -7,8 +7,8 @@ let width = window.innerWidth;
 let height = window.innerHeight;
 
 function resizeFullScreen() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
+    width = canvas.width = Math.max(1, window.innerWidth);
+    height = canvas.height = Math.max(1, window.innerHeight);
     rebuildTextBubbles();
 }
 
@@ -33,11 +33,7 @@ function triggerPlayAudio() {
     }
     const p = bgAudio.play();
     if (p && typeof p.then === 'function') {
-        p.then(() => {
-            updateMusicButtonLabel();
-        }).catch(() => {
-            updateMusicButtonLabel();
-        });
+        p.then(updateMusicButtonLabel).catch(updateMusicButtonLabel);
     } else {
         updateMusicButtonLabel();
     }
@@ -72,21 +68,21 @@ if (bgAudio) {
 
 // ================= CẤU HÌNH SINH VẬT (IMG_3140.jpeg = CÁ MẬP TO) =================
 const creatureDefs = [
-    { key: 'img3140', src: 'IMG_3140.jpeg', facing: 'right', size: 270, speed: 1.55, laneY: 0.34 },
-    { key: 'img3100', src: 'IMG_3100.jpeg', facing: 'right', size: 135, speed: 1.35, laneY: 0.48 },
-    { key: 'img3096', src: 'IMG_3096.jpeg', facing: 'right', size: 84,  speed: 1.50, laneY: 0.25 },
-    { key: 'img3101', src: 'IMG_3101.jpeg', facing: 'right', size: 92,  speed: 1.45, laneY: 0.40 },
-    { key: 'img3103', src: 'IMG_3103.jpeg', facing: 'right', size: 90,  speed: 1.65, laneY: 0.56 },
-    { key: 'img3104', src: 'IMG_3104.jpeg', facing: 'left',  size: 94,  speed: 1.35, laneY: 0.64 },
-    { key: 'img3105', src: 'IMG_3105.jpeg', facing: 'left',  size: 90,  speed: 1.50, laneY: 0.72 },
-    { key: 'img3114', src: 'IMG_3114.jpeg', facing: 'right', size: 88,  speed: 1.20, laneY: 0.80 },
-    { key: 'img3127', src: 'IMG_3127.jpeg', facing: 'right', size: 92,  speed: 1.45, laneY: 0.29 },
-    { key: 'img3128', src: 'IMG_3128.jpeg', facing: 'right', size: 94,  speed: 1.50, laneY: 0.68 },
-    { key: 'img3130', src: 'IMG_3130.jpeg', facing: 'right', size: 92,  speed: 1.55, laneY: 0.52 },
-    { key: 'img3131', src: 'IMG_3131.jpeg', facing: 'left',  size: 94,  speed: 1.40, laneY: 0.85 },
-    { key: 'img3137', src: 'IMG_3137.jpeg', facing: 'right', size: 92,  speed: 1.45, laneY: 0.37 },
-    { key: 'img3138', src: 'IMG_3138.jpeg', facing: 'left',  size: 92,  speed: 1.50, laneY: 0.60 },
-    { key: 'img3139', src: 'IMG_3139.jpeg', facing: 'right', size: 94,  speed: 1.40, laneY: 0.76 }
+    { key: 'img3140', src: 'IMG_3140.jpeg', facing: 'right', size: 400, speed: 1.85, laneY: 0.36 },
+    { key: 'img3100', src: 'IMG_3100.jpeg', facing: 'right', size: 150, speed: 1.35, laneY: 0.50 },
+    { key: 'img3096', src: 'IMG_3096.jpeg', facing: 'right', size: 100,  speed: 1.50, laneY: 0.31 },
+    { key: 'img3101', src: 'IMG_3101.jpeg', facing: 'right', size: 85,  speed: 1.45, laneY: 0.43 },
+    { key: 'img3103', src: 'IMG_3103.jpeg', facing: 'right', size: 90,  speed: 1.65, laneY: 0.58 },
+    { key: 'img3104', src: 'IMG_3104.jpeg', facing: 'left',  size: 100,  speed: 1.55, laneY: 0.65 },
+    { key: 'img3105', src: 'IMG_3105.jpeg', facing: 'left',  size: 100,  speed: 1.50, laneY: 0.72 },
+    { key: 'img3114', src: 'IMG_3114.jpeg', facing: 'right', size: 130,  speed: 1.20, laneY: 0.80 },
+    { key: 'img3127', src: 'IMG_3127.jpeg', facing: 'right', size: 100,  speed: 1.45, laneY: 0.33 },
+    { key: 'img3128', src: 'IMG_3128.jpeg', facing: 'right', size: 115,  speed: 1.50, laneY: 0.69 },
+    { key: 'img3130', src: 'IMG_3130.jpeg', facing: 'right', size: 100,  speed: 1.55, laneY: 0.54 },
+    { key: 'img3131', src: 'IMG_3131.jpeg', facing: 'left',  size: 85,  speed: 1.40, laneY: 0.85 },
+    { key: 'img3137', src: 'IMG_3137.jpeg', facing: 'right', size: 100,  speed: 1.45, laneY: 0.41 },
+    { key: 'img3138', src: 'IMG_3138.jpeg', facing: 'left',  size: 100,  speed: 1.50, laneY: 0.61 },
+    { key: 'img3139', src: 'IMG_3139.jpeg', facing: 'right', size: 100,  speed: 1.40, laneY: 0.76 }
 ];
 
 const BG_CANDIDATES = ['IMG_3113.jpeg', 'IMG_3113_2.jpeg'];
@@ -174,26 +170,37 @@ async function loadBestBackground() {
     return null;
 }
 
-function drawFallbackOceanBg(time = 0) {
+function drawFullScreenBackground(time = 0) {
     const grad = ctx.createLinearGradient(0, 0, 0, height);
-    grad.addColorStop(0, '#0a74b8');
-    grad.addColorStop(0.55, '#043f73');
-    grad.addColorStop(1, '#021933');
+    grad.addColorStop(0, '#0969a8');
+    grad.addColorStop(0.55, '#043866');
+    grad.addColorStop(1, '#021830');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, width, height);
 
+    if (bgImage && (bgImage.naturalWidth || bgImage.width) > 0) {
+        const bw = bgImage.naturalWidth || bgImage.width;
+        const bh = bgImage.naturalHeight || bgImage.height;
+        // Phủ kín toàn màn hình (cover) để không bị hở phần trống
+        const scale = Math.max(width / bw, height / bh);
+        const dw = bw * scale;
+        const dh = bh * scale;
+        ctx.drawImage(bgImage, (width - dw) / 2, (height - dh) / 2, dw, dh);
+    }
+
+    // Tia sáng mặt nước nhẹ
     ctx.save();
     for (let i = 0; i < 4; i++) {
         const x = width * (0.2 + i * 0.2) + Math.sin(time * 0.0006 + i) * 35;
-        const ray = ctx.createLinearGradient(x, 0, x + 120, height * 0.8);
-        ray.addColorStop(0, 'rgba(130, 225, 255, 0.16)');
+        const ray = ctx.createLinearGradient(x, 0, x + 120, height * 0.75);
+        ray.addColorStop(0, 'rgba(130, 225, 255, 0.12)');
         ray.addColorStop(1, 'rgba(130, 225, 255, 0)');
         ctx.fillStyle = ray;
         ctx.beginPath();
         ctx.moveTo(x - 40, 0);
         ctx.lineTo(x + 50, 0);
-        ctx.lineTo(x + 210, height * 0.8);
-        ctx.lineTo(x - 90, height * 0.8);
+        ctx.lineTo(x + 210, height * 0.75);
+        ctx.lineTo(x - 90, height * 0.75);
         ctx.closePath();
         ctx.fill();
     }
@@ -253,7 +260,7 @@ class Swimmer {
 
         const halfW = this.w * 0.5;
         const halfH = this.h * 0.5;
-        const topLimit = Math.max(halfH + 12, 64);
+        const topLimit = Math.max(halfH + 12, 72);
         const bottomLimit = Math.max(topLimit + 40, height - halfH - 16);
 
         if (this.x - halfW <= 4 && this.vx < 0) {
@@ -362,12 +369,14 @@ function rebuildTextBubbles() {
     off.height = Math.max(1, height);
     const octx = off.getContext('2d');
 
-    const fontSize = Math.max(38, Math.min(width * 0.085, 96));
+    // Đặt chữ YEN NHI vừa vặn, không bị nút Click here đè lên
+    const fontSize = Math.max(36, Math.min(width * 0.085, 92));
     octx.font = `900 ${fontSize}px "Arial Black", Impact, sans-serif`;
     octx.fillStyle = '#ffffff';
     octx.textAlign = 'center';
     octx.textBaseline = 'middle';
-    octx.fillText('YEN NHI', width / 2, height * 0.18);
+    const textY = Math.max(76, Math.min(height * 0.21, 150));
+    octx.fillText('YEN NHI', width / 2, textY);
 
     const data = octx.getImageData(0, 0, off.width, off.height).data;
     const next = [];
@@ -393,7 +402,6 @@ function rebuildTextBubbles() {
     textBubbles = next;
 }
 
-// Chạm vào hồ cá: vừa phát nhạc, vừa bật bong bóng
 canvas.addEventListener('pointerdown', (e) => {
     triggerPlayAudio();
 
@@ -436,7 +444,7 @@ async function init() {
         swimmers.push(
             new Swimmer({
                 ...def,
-                x: Math.min(width - 140, Math.max(140, startX)),
+                x: Math.min(width - 120, Math.max(120, startX)),
                 y: height * def.laneY,
                 vx: dir * def.speed,
                 vy: (idx % 2 === 0 ? 0.2 : -0.2),
@@ -460,16 +468,7 @@ async function init() {
     function loop(time) {
         ctx.clearRect(0, 0, width, height);
 
-        if (bgImage && (bgImage.naturalWidth || bgImage.width) > 0) {
-            const bw = bgImage.naturalWidth || bgImage.width;
-            const bh = bgImage.naturalHeight || bgImage.height;
-            const scale = Math.max(width / bw, height / bh);
-            const dw = bw * scale;
-            const dh = bh * scale;
-            ctx.drawImage(bgImage, (width - dw) / 2, (height - dh) / 2, dw, dh);
-        } else {
-            drawFallbackOceanBg(time);
-        }
+        drawFullScreenBackground(time);
 
         swimmers.forEach((s) => {
             s.update(swimmers);
