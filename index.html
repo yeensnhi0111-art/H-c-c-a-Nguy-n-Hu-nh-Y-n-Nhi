@@ -7,11 +7,17 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Canvas chính hiển thị toàn bộ hồ cá và hiệu ứng -->
+    <!-- Canvas chính hiển thị hồ cá -->
     <canvas id="aquariumCanvas"></canvas>
 
-    <!-- Màn hình chờ trong lúc thuật toán tách nền ảnh đang xử lý (chỉ mất ~0.5s) -->
+    <!-- Màn hình chờ xử lý tách nền ảnh -->
     <div id="loading">Đang chuẩn bị hồ cá & tách nền sinh vật...</div>
+
+    <!-- Nút điều khiển bật/tắt âm thanh -->
+    <button id="audioToggle" title="Bật / Tắt âm thanh">🔇 Bật âm thanh</button>
+
+    <!-- Trình phát âm thanh từ file .mp4 (ẩn hình ảnh, chỉ phát tiếng lặp lại) -->
+    <video id="bgAudio" src="audio/bg-music.mp4" loop playsinline preload="auto"></video>
 
     <script src="script.js"></script>
 </body>
