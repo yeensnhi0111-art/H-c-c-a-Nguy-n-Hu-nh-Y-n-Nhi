@@ -7,12 +7,22 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Canvas hiển thị toàn bộ hồ cá, sinh vật và bong bóng chữ -->
     <canvas id="aquariumCanvas"></canvas>
-    <div id="loading">Đang chuẩn bị hồ cá & tách nền sinh vật...</div>
-    <button id="audioToggle" title="Bật / Tắt âm thanh">🔇 Bật âm thanh</button>
 
-    <!-- Điền chính xác tên file phimtat.vn-audio-... của bạn ở đây -->
-    <video id="bgAudio" src="TÊN_FILE_ÂM_THANH_CỦA_BẠN.mp4" loop playsinline preload="auto"></video>
+    <!-- Màn hình chào: vừa bấm vào là mở hồ cá & phát âm thanh ngay -->
+    <div id="splashScreen">
+        <div class="splash-card">
+            <div class="splash-title">🐠 HỒ CÁ YEN NHI</div>
+            <div class="splash-sub">Chạm vào để mở hồ cá &amp; bật âm thanh</div>
+        </div>
+    </div>
+
+    <!-- Nút điều khiển bật/tắt âm thanh ở góc dưới bên phải -->
+    <button id="audioToggle" title="Bật / Tắt âm thanh">🔊 Tắt âm thanh</button>
+
+    <!-- Nhớ thay TÊN_FILE_ÂM_THANH.mp4 bằng tên đầy đủ của file phimtat.vn-audio-... trên GitHub -->
+    <video id="bgAudio" src="TÊN_FILE_ÂM_THANH.mp4" loop playsinline preload="auto"></video>
 
     <script src="script.js"></script>
 </body>
