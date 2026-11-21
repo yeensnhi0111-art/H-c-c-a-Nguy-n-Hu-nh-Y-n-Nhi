@@ -1,6 +1,6 @@
 const canvas = document.getElementById('aquariumCanvas');
 const ctx = canvas.getContext('2d');
-const loadingEl = document.getElementById('loading');
+const splashScreen = document.getElementById('splashScreen');
 const bgAudio = document.getElementById('bgAudio');
 const audioToggle = document.getElementById('audioToggle');
 
@@ -12,23 +12,43 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// ================= ÂM THANH (.MP4) =================
+// ================= ÂM THANH (.MP4) & MÀN HÌNH CHÀO =================
 let isPlaying = false;
+
+function playAudioNow() {
+    if (!bgAudio) return Promise.resolve(false);
+    return bgAudio.play().then(() => {
+        isPlaying = true;
+        if (audioToggle) audioToggle.textContent = '🔊 Tắt âm thanh';
+        return true;
+    }).catch(() => {
+        isPlaying = false;
+        if (audioToggle) audioToggle.textContent = '🔇 Bật âm thanh';
+        return false;
+    });
+}
 
 function toggleAudio() {
     if (!bgAudio) return;
     if (bgAudio.paused) {
-        bgAudio.play().then(() => {
-            isPlaying = true;
-            audioToggle.textContent = '🔊 Tắt âm thanh';
-        }).catch(() => {});
+        playAudioNow();
     } else {
         bgAudio.pause();
         isPlaying = false;
-        audioToggle.textContent = '🔇 Bật âm thanh';
+        if (audioToggle) audioToggle.textContent = '🔇 Bật âm thanh';
     }
 }
 
+// Bấm vào màn hình chào: phát nhạc ngay lập tức rồi mở hồ cá
+if (splashScreen) {
+    splashScreen.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        playAudioNow();
+        splashScreen.classList.add('hidden');
+    });
+}
+
+// Nút bật/tắt âm thanh ở góc dưới
 if (audioToggle) {
     audioToggle.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -36,17 +56,22 @@ if (audioToggle) {
     });
 }
 
-document.addEventListener('click', () => {
-    if (!isPlaying && bgAudio && bgAudio.paused) {
-        bgAudio.play().then(() => {
-            isPlaying = true;
-            if (audioToggle) audioToggle.textContent = '🔊 Tắt âm thanh';
-        }).catch(() => {});
-    }
-}, { once: true });
+// Thử tự động phát ngay khi tải trang (nếu trình duyệt cho phép)
+window.addEventListener('DOMContentLoaded', () => {
+    playAudioNow();
+});
 
-// ================= DANH SÁCH 10 FILE ẢNH TRÊN GITHUB =================
-// Nếu ảnh nào bị ngược vị trí (ví dụ nền nằm ở IMG_3114.jpeg), bạn chỉ cần đổi tên file ở cột src
+// Bắt ngay thao tác chạm/bấm đầu tiên trên trang nếu chưa phát
+['pointerdown', 'touchstart', 'click', 'keydown'].forEach(evtName => {
+    document.addEventListener(evtName, () => {
+        if (!isPlaying && bgAudio && bgAudio.paused) {
+            playAudioNow();
+        }
+    }, { passive: true });
+});
+
+// ================= DANH SÁCH 10 FILE ẢNH .JPEG TRÊN GITHUB =================
+// Nếu ảnh nào bị nhầm vị trí, bạn chỉ cần đổi tên file ở cột src cho khớp
 const assetConfig = [
     { name: 'crab', src: 'IMG_3100.jpeg', removeBg: true, facing: 'none', type: 'bottom', scale: 0.16 },
     { name: 'bg', src: 'IMG_3101.jpeg', removeBg: false },
@@ -62,7 +87,7 @@ const assetConfig = [
 
 const loadedAssets = {};
 
-// Thuật toán tách nền trắng / ô caro an toàn
+// Thuật toán tách nền trắng / ô caro an toàn cho ảnh .jpeg
 function removeBackgroundSafe(img) {
     try {
         const offCanvas = document.createElement('canvas');
@@ -360,8 +385,6 @@ let bgBubbles = [];
 let textBubbles = [];
 
 loadAllAssets().then(() => {
-    if (loadingEl) loadingEl.style.display = 'none';
-
     const spawnPlan = [
         { name: 'turtle', count: 1 },
         { name: 'stingray', count: 1 },
