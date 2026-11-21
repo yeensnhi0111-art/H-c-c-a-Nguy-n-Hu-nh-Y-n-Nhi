@@ -7,16 +7,12 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <canvas id="aquariumCanvas"></canvas>
-
-    <div id="splashScreen">
-        <div class="splash-card">
-            <div class="splash-title">🐠 HỒ CÁ YEN NHI</div>
-            <div class="splash-sub">Chạm vào để mở hồ cá &amp; bật âm thanh</div>
-        </div>
+    <div id="stage">
+        <canvas id="aquariumCanvas"></canvas>
     </div>
 
-    <button id="audioToggle" title="Bật / Tắt âm thanh">🔊 Tắt âm thanh</button>
+    <div id="soundHint">🎵 Chạm nhẹ vào hồ cá để bật âm thanh</div>
+    <button id="audioToggle" title="Bật / Tắt âm thanh">🔇 Bật âm thanh</button>
 
     <audio id="bgAudio" src="phimtat.vn-audio-3657.m4a" loop playsinline preload="auto"></audio>
 
