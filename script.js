@@ -85,7 +85,7 @@ const creatureDefs = [
     { key: 'img3131', src: 'IMG_3131.jpeg', facing: 'left',  size: 94,  speed: 1.40, laneY: 0.85 }
 ];
 
-const BG_SRC = 'IMG_3113_2.jpeg';
+const BG_SRC = 'IMG_3113.jpeg';
 const images = {};
 let bgImage = null;
 
