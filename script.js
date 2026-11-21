@@ -3,89 +3,93 @@ const ctx = canvas.getContext('2d');
 const bgAudio = document.getElementById('bgAudio');
 const musicBtn = document.getElementById('musicBtn');
 
-// Khung ngang chuẩn 16:9
-let width = 1280;
-let height = 720;
+let width = window.innerWidth;
+let height = window.innerHeight;
 
-function apply16x9Size() {
-    const padX = 28;
-    const padY = 72;
-    const availW = Math.max(240, window.innerWidth - padX);
-    const availH = Math.max(150, window.innerHeight - padY);
-
-    const ratio = 16 / 9;
-    let displayW = availW;
-    let displayH = displayW / ratio;
-
-    if (displayH > availH) {
-        displayH = availH;
-        displayW = displayH * ratio;
-    }
-
-    canvas.style.width = `${Math.round(displayW)}px`;
-    canvas.style.height = `${Math.round(displayH)}px`;
-
-    canvas.width = width;
-    canvas.height = height;
+function resizeFullScreen() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
     rebuildTextBubbles();
 }
 
-window.addEventListener('resize', apply16x9Size);
+window.addEventListener('resize', resizeFullScreen);
 
-// ================= ÂM THANH (.M4A) CHẠM NHẸ LÀ PHÁT =================
-let isMusicOn = false;
-
+// ================= ÂM THANH (.M4A): BẤM NÚT HOẶC CHẠM HỒ CÁ ĐỀU PHÁT =================
 if (bgAudio) {
     bgAudio.src = 'phimtat.vn-audio-3657.m4a';
     bgAudio.load();
 }
 
-function setMusicState(play) {
+function updateMusicButtonLabel() {
+    if (!musicBtn || !bgAudio) return;
+    musicBtn.textContent = bgAudio.paused ? 'Click here 🫶' : 'Tắt nhạc 🔊';
+}
+
+function triggerPlayAudio() {
     if (!bgAudio) return;
-    if (play) {
-        bgAudio.play().then(() => {
-            isMusicOn = true;
-            if (musicBtn) musicBtn.textContent = 'Tắt nhạc';
-        }).catch(() => {});
+    if (!bgAudio.src || !bgAudio.src.includes('phimtat.vn-audio-3657.m4a')) {
+        bgAudio.src = 'phimtat.vn-audio-3657.m4a';
+        bgAudio.load();
+    }
+    const p = bgAudio.play();
+    if (p && typeof p.then === 'function') {
+        p.then(() => {
+            updateMusicButtonLabel();
+        }).catch(() => {
+            updateMusicButtonLabel();
+        });
+    } else {
+        updateMusicButtonLabel();
+    }
+}
+
+function toggleMusicByButton() {
+    if (!bgAudio) return;
+    if (bgAudio.paused) {
+        triggerPlayAudio();
     } else {
         bgAudio.pause();
-        isMusicOn = false;
-        if (musicBtn) musicBtn.textContent = 'Bật nhạc';
+        updateMusicButtonLabel();
     }
 }
 
 if (musicBtn) {
     musicBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        setMusicState(!isMusicOn);
+        toggleMusicByButton();
     });
+    musicBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleMusicByButton();
+    }, { passive: false });
 }
 
-['pointerdown', 'touchstart', 'click'].forEach((ev) => {
-    document.addEventListener(ev, () => {
-        if (!isMusicOn) {
-            setMusicState(true);
-        }
-    }, { passive: true });
-});
+if (bgAudio) {
+    bgAudio.addEventListener('play', updateMusicButtonLabel);
+    bgAudio.addEventListener('pause', updateMusicButtonLabel);
+}
 
-// ================= CẤU HÌNH SINH VẬT & NỀN 16:9 =================
+// ================= CẤU HÌNH SINH VẬT (IMG_3140.jpeg = CÁ MẬP TO) =================
 const creatureDefs = [
-    { key: 'img3133', src: 'IMG_3133.jpeg', facing: 'right', size: 250, speed: 1.55, laneY: 0.34 },
+    { key: 'img3140', src: 'IMG_3140.jpeg', facing: 'right', size: 270, speed: 1.55, laneY: 0.34 },
     { key: 'img3100', src: 'IMG_3100.jpeg', facing: 'right', size: 135, speed: 1.35, laneY: 0.48 },
-    { key: 'img3096', src: 'IMG_3096.jpeg', facing: 'right', size: 84,  speed: 1.50, laneY: 0.26 },
+    { key: 'img3096', src: 'IMG_3096.jpeg', facing: 'right', size: 84,  speed: 1.50, laneY: 0.25 },
     { key: 'img3101', src: 'IMG_3101.jpeg', facing: 'right', size: 92,  speed: 1.45, laneY: 0.40 },
     { key: 'img3103', src: 'IMG_3103.jpeg', facing: 'right', size: 90,  speed: 1.65, laneY: 0.56 },
     { key: 'img3104', src: 'IMG_3104.jpeg', facing: 'left',  size: 94,  speed: 1.35, laneY: 0.64 },
     { key: 'img3105', src: 'IMG_3105.jpeg', facing: 'left',  size: 90,  speed: 1.50, laneY: 0.72 },
     { key: 'img3114', src: 'IMG_3114.jpeg', facing: 'right', size: 88,  speed: 1.20, laneY: 0.80 },
-    { key: 'img3127', src: 'IMG_3127.jpeg', facing: 'right', size: 92,  speed: 1.45, laneY: 0.30 },
+    { key: 'img3127', src: 'IMG_3127.jpeg', facing: 'right', size: 92,  speed: 1.45, laneY: 0.29 },
     { key: 'img3128', src: 'IMG_3128.jpeg', facing: 'right', size: 94,  speed: 1.50, laneY: 0.68 },
     { key: 'img3130', src: 'IMG_3130.jpeg', facing: 'right', size: 92,  speed: 1.55, laneY: 0.52 },
-    { key: 'img3131', src: 'IMG_3131.jpeg', facing: 'left',  size: 94,  speed: 1.40, laneY: 0.85 }
+    { key: 'img3131', src: 'IMG_3131.jpeg', facing: 'left',  size: 94,  speed: 1.40, laneY: 0.85 },
+    { key: 'img3137', src: 'IMG_3137.jpeg', facing: 'right', size: 92,  speed: 1.45, laneY: 0.37 },
+    { key: 'img3138', src: 'IMG_3138.jpeg', facing: 'left',  size: 92,  speed: 1.50, laneY: 0.60 },
+    { key: 'img3139', src: 'IMG_3139.jpeg', facing: 'right', size: 94,  speed: 1.40, laneY: 0.76 }
 ];
 
-const BG_SRC = 'IMG_3113.jpeg';
+const BG_CANDIDATES = ['IMG_3113.jpeg', 'IMG_3113_2.jpeg'];
 const images = {};
 let bgImage = null;
 
@@ -158,6 +162,42 @@ function loadImageItem(src, shouldCutBg) {
         img.onerror = () => resolve(null);
         img.src = src;
     });
+}
+
+async function loadBestBackground() {
+    for (const src of BG_CANDIDATES) {
+        const img = await loadImageItem(src, false);
+        if (img && (img.naturalWidth || img.width) > 0) {
+            return img;
+        }
+    }
+    return null;
+}
+
+function drawFallbackOceanBg(time = 0) {
+    const grad = ctx.createLinearGradient(0, 0, 0, height);
+    grad.addColorStop(0, '#0a74b8');
+    grad.addColorStop(0.55, '#043f73');
+    grad.addColorStop(1, '#021933');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.save();
+    for (let i = 0; i < 4; i++) {
+        const x = width * (0.2 + i * 0.2) + Math.sin(time * 0.0006 + i) * 35;
+        const ray = ctx.createLinearGradient(x, 0, x + 120, height * 0.8);
+        ray.addColorStop(0, 'rgba(130, 225, 255, 0.16)');
+        ray.addColorStop(1, 'rgba(130, 225, 255, 0)');
+        ctx.fillStyle = ray;
+        ctx.beginPath();
+        ctx.moveTo(x - 40, 0);
+        ctx.lineTo(x + 50, 0);
+        ctx.lineTo(x + 210, height * 0.8);
+        ctx.lineTo(x - 90, height * 0.8);
+        ctx.closePath();
+        ctx.fill();
+    }
+    ctx.restore();
 }
 
 // ================= SINH VẬT BƠI CÓ TRẬT TỰ & CHẠM VẠCH QUAY ĐẦU =================
@@ -322,7 +362,7 @@ function rebuildTextBubbles() {
     off.height = Math.max(1, height);
     const octx = off.getContext('2d');
 
-    const fontSize = 96;
+    const fontSize = Math.max(38, Math.min(width * 0.085, 96));
     octx.font = `900 ${fontSize}px "Arial Black", Impact, sans-serif`;
     octx.fillStyle = '#ffffff';
     octx.textAlign = 'center';
@@ -331,7 +371,7 @@ function rebuildTextBubbles() {
 
     const data = octx.getImageData(0, 0, off.width, off.height).data;
     const next = [];
-    const step = 7;
+    const step = Math.max(5, Math.floor(fontSize / 13));
 
     for (let y = 0; y < off.height; y += step) {
         for (let x = 0; x < off.width; x += step) {
@@ -353,12 +393,13 @@ function rebuildTextBubbles() {
     textBubbles = next;
 }
 
+// Chạm vào hồ cá: vừa phát nhạc, vừa bật bong bóng
 canvas.addEventListener('pointerdown', (e) => {
+    triggerPlayAudio();
+
     const rect = canvas.getBoundingClientRect();
-    const scaleX = width / Math.max(1, rect.width);
-    const scaleY = height / Math.max(1, rect.height);
-    const px = (e.clientX - rect.left) * scaleX;
-    const py = (e.clientY - rect.top) * scaleY;
+    const px = e.clientX - rect.left;
+    const py = e.clientY - rect.top;
     for (let i = 0; i < 10; i++) {
         bubbles.push(
             new Bubble(
@@ -371,19 +412,19 @@ canvas.addEventListener('pointerdown', (e) => {
     }
 });
 
-// ================= KHỞI TẠO & VÒNG LẶP =================
+// ================= KHỞI TẠO & VÒNG LẶP TOÀN MÀN HÌNH =================
 async function init() {
+    resizeFullScreen();
+
     const promises = creatureDefs.map(async (def) => {
         images[def.key] = await loadImageItem(def.src, true);
     });
     promises.push(
-        loadImageItem(BG_SRC, false).then((img) => {
+        loadBestBackground().then((img) => {
             bgImage = img;
         })
     );
     await Promise.all(promises);
-
-    apply16x9Size();
 
     swimmers = [];
 
@@ -419,11 +460,15 @@ async function init() {
     function loop(time) {
         ctx.clearRect(0, 0, width, height);
 
-        if (bgImage) {
-            ctx.drawImage(bgImage, 0, 0, width, height);
+        if (bgImage && (bgImage.naturalWidth || bgImage.width) > 0) {
+            const bw = bgImage.naturalWidth || bgImage.width;
+            const bh = bgImage.naturalHeight || bgImage.height;
+            const scale = Math.max(width / bw, height / bh);
+            const dw = bw * scale;
+            const dh = bh * scale;
+            ctx.drawImage(bgImage, (width - dw) / 2, (height - dh) / 2, dw, dh);
         } else {
-            ctx.fillStyle = '#065294';
-            ctx.fillRect(0, 0, width, height);
+            drawFallbackOceanBg(time);
         }
 
         swimmers.forEach((s) => {
