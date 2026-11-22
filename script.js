@@ -66,16 +66,16 @@ if (bgAudio) {
     bgAudio.addEventListener('pause', updateMusicButtonLabel);
 }
 
-// ================= CẤU HÌNH SINH VẬT (IMG_3140.jpeg = CÁ MẬP TO) =================
+// ================= CẤU HÌNH SINH VẬT (GIỮ NGUYÊN THÔNG SỐ SIZE) =================
 const creatureDefs = [
     { key: 'img3140', src: 'IMG_3140.jpeg', facing: 'right', size: 300, speed: 1.55, laneY: 0.36 },
-    { key: 'img3100', src: 'IMG_3100.jpeg', facing: 'right', size: 55, speed: 1.35, laneY: 0.50 },
+    { key: 'img3100', src: 'IMG_3100.jpeg', facing: 'right', size: 85,  speed: 1.35, laneY: 0.50 },
     { key: 'img3101', src: 'IMG_3101.jpeg', facing: 'right', size: 25,  speed: 1.45, laneY: 0.43 },
     { key: 'img3103', src: 'IMG_3103.jpeg', facing: 'right', size: 25,  speed: 1.65, laneY: 0.58 },
     { key: 'img3104', src: 'IMG_3104.jpeg', facing: 'left',  size: 45,  speed: 1.35, laneY: 0.65 },
     { key: 'img3105', src: 'IMG_3105.jpeg', facing: 'left',  size: 45,  speed: 1.50, laneY: 0.72 },
-    { key: 'img3114', src: 'IMG_3114.jpeg', facing: 'right', size: 60,  speed: 1.20, laneY: 0.80 },
-    { key: 'img3127', src: 'IMG_3127.jpeg', facing: 'right', size: 135,  speed: 1.45, laneY: 0.33 },
+    { key: 'img3114', src: 'IMG_3114.jpeg', facing: 'right', size: 80,  speed: 1.20, laneY: 0.80 },
+    { key: 'img3127', src: 'IMG_3127.jpeg', facing: 'right', size: 135, speed: 1.45, laneY: 0.33 },
     { key: 'img3130', src: 'IMG_3130.jpeg', facing: 'right', size: 35,  speed: 1.55, laneY: 0.54 },
     { key: 'img3131', src: 'IMG_3131.jpeg', facing: 'left',  size: 30,  speed: 1.40, laneY: 0.85 },
     { key: 'img3137', src: 'IMG_3137.jpeg', facing: 'right', size: 45,  speed: 1.45, laneY: 0.41 },
@@ -179,14 +179,12 @@ function drawFullScreenBackground(time = 0) {
     if (bgImage && (bgImage.naturalWidth || bgImage.width) > 0) {
         const bw = bgImage.naturalWidth || bgImage.width;
         const bh = bgImage.naturalHeight || bgImage.height;
-        // Phủ kín toàn màn hình (cover) để không bị hở phần trống
         const scale = Math.max(width / bw, height / bh);
         const dw = bw * scale;
         const dh = bh * scale;
         ctx.drawImage(bgImage, (width - dw) / 2, (height - dh) / 2, dw, dh);
     }
 
-    // Tia sáng mặt nước nhẹ
     ctx.save();
     for (let i = 0; i < 4; i++) {
         const x = width * (0.2 + i * 0.2) + Math.sin(time * 0.0006 + i) * 35;
@@ -220,10 +218,10 @@ class Swimmer {
 
         if (ratio >= 1) {
             this.w = size;
-            this.h = Math.max(28, size / ratio);
+            this.h = Math.max(20, size / ratio);
         } else {
             this.h = size;
-            this.w = Math.max(28, size * ratio);
+            this.w = Math.max(20, size * ratio);
         }
 
         this.x = x;
@@ -240,8 +238,8 @@ class Swimmer {
         const desiredY = height * this.baseLaneY + Math.sin(this.bobPhase * 0.7) * 6;
         this.y += (desiredY - this.y) * 0.06 + this.vy * 0.2;
 
-        const minDistX = (this.w + 36) * 0.6;
-        const minDistY = (this.h + 24) * 0.6;
+        const minDistX = (this.w + 32) * 0.6;
+        const minDistY = (this.h + 22) * 0.6;
         for (let i = 0; i < allSwimmers.length; i++) {
             const other = allSwimmers[i];
             if (other === this) continue;
@@ -367,7 +365,6 @@ function rebuildTextBubbles() {
     off.height = Math.max(1, height);
     const octx = off.getContext('2d');
 
-    // Đặt chữ YEN NHI vừa vặn, không bị nút Click here đè lên
     const fontSize = Math.max(36, Math.min(width * 0.085, 92));
     octx.font = `900 ${fontSize}px "Arial Black", Impact, sans-serif`;
     octx.fillStyle = '#ffffff';
@@ -434,21 +431,30 @@ async function init() {
 
     swimmers = [];
 
+    // Trừ cá mập (img3140) giữ 1 con, các sinh vật khác nhân đôi (2 bản) giữ nguyên size
     creatureDefs.forEach((def, idx) => {
         if (!images[def.key]) return;
-        const dir = idx % 2 === 0 ? 1 : -1;
-        const startX = width * (0.18 + (idx % 4) * 0.2);
 
-        swimmers.push(
-            new Swimmer({
-                ...def,
-                x: Math.min(width - 120, Math.max(120, startX)),
-                y: height * def.laneY,
-                vx: dir * def.speed,
-                vy: (idx % 2 === 0 ? 0.2 : -0.2),
-                baseLaneY: def.laneY
-            })
-        );
+        const copies = def.key === 'img3140' ? 1 : 2;
+        for (let copy = 0; copy < copies; copy++) {
+            const dir = copy === 0 ? (idx % 2 === 0 ? 1 : -1) : -1;
+            const startX = copy === 0
+                ? width * (0.18 + (idx % 4) * 0.2)
+                : width * (0.55 + (idx % 3) * 0.14);
+            const laneOffset = copy === 0 ? 0 : (idx % 2 === 0 ? -0.025 : 0.025);
+            const finalLaneY = Math.min(0.86, Math.max(0.24, def.laneY + laneOffset));
+
+            swimmers.push(
+                new Swimmer({
+                    ...def,
+                    x: Math.min(width - 120, Math.max(120, startX)),
+                    y: height * finalLaneY,
+                    vx: dir * def.speed * (copy === 0 ? 1.0 : 0.92),
+                    vy: (copy === 0 ? 0.2 : -0.2),
+                    baseLaneY: finalLaneY
+                })
+            );
+        }
     });
 
     bubbles = [];
