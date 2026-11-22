@@ -78,7 +78,7 @@ const creatureDefs = [
     { key: 'img3127', src: 'IMG_3127.jpeg', facing: 'right', size: 135, speed: 1.45, laneY: 0.33 },
     { key: 'img3130', src: 'IMG_3130.jpeg', facing: 'right', size: 35,  speed: 1.55, laneY: 0.54 },
     { key: 'img3131', src: 'IMG_3131.jpeg', facing: 'left',  size: 30,  speed: 1.40, laneY: 0.85 },
-    { key: 'img3137', src: 'IMG_3137.jpeg', facing: 'right', size: 45,  speed: 1.45, laneY: 0.41 },
+    { key: 'img3137', src: 'IMG_3137.jpeg', facing: 'right', size: 30,  speed: 1.45, laneY: 0.41 },
     { key: 'img3138', src: 'IMG_3138.jpeg', facing: 'left',  size: 45,  speed: 1.50, laneY: 0.61 },
     { key: 'img3139', src: 'IMG_3139.jpeg', facing: 'right', size: 45,  speed: 1.40, laneY: 0.76 }
 ];
