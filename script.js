@@ -68,7 +68,7 @@ if (bgAudio) {
 
 // ================= CẤU HÌNH SINH VẬT (GIỮ NGUYÊN THÔNG SỐ SIZE) =================
 const creatureDefs = [
-    { key: 'img3140', src: 'IMG_3140.jpeg', facing: 'right', size: 350, speed: 1.75, laneY: 0.36 },
+    { key: 'img3140', src: 'IMG_3140.jpeg', facing: 'right', size: 350, speed: 1.55, laneY: 0.36 },
     { key: 'img3100', src: 'IMG_3100.jpeg', facing: 'right', size: 65,  speed: 1.35, laneY: 0.50 },
     { key: 'img3101', src: 'IMG_3101.jpeg', facing: 'right', size: 25,  speed: 1.45, laneY: 0.43 },
     { key: 'img3103', src: 'IMG_3103.jpeg', facing: 'right', size: 25,  speed: 1.65, laneY: 0.58 },
@@ -238,32 +238,35 @@ class Swimmer {
         const desiredY = height * this.baseLaneY + Math.sin(this.bobPhase * 0.7) * 6;
         this.y += (desiredY - this.y) * 0.06 + this.vy * 0.2;
 
-        const minDistX = (this.w + 32) * 0.6;
-        const minDistY = (this.h + 22) * 0.6;
-        for (let i = 0; i < allSwimmers.length; i++) {
-            const other = allSwimmers[i];
-            if (other === this) continue;
-            const dx = this.x - other.x;
-            const dy = this.y - other.y;
-            if (Math.abs(dx) < minDistX && Math.abs(dy) < minDistY) {
-                if (Math.abs(dy) >= Math.abs(dx)) {
-                    this.y += (dy >= 0 ? 1 : -1) * 0.55;
-                } else {
-                    this.x += (dx >= 0 ? 1 : -1) * 0.4;
+        // Cá mập (img3140) bơi xuyên lớp mượt mà, không bị đẩy giật ngang bởi các cá nhỏ
+        if (this.key !== 'img3140') {
+            const minDistX = (this.w + 32) * 0.6;
+            const minDistY = (this.h + 22) * 0.6;
+            for (let i = 0; i < allSwimmers.length; i++) {
+                const other = allSwimmers[i];
+                if (other === this) continue;
+                const dx = this.x - other.x;
+                const dy = this.y - other.y;
+                if (Math.abs(dx) < minDistX && Math.abs(dy) < minDistY) {
+                    if (Math.abs(dy) >= Math.abs(dx)) {
+                        this.y += (dy >= 0 ? 1 : -1) * 0.55;
+                    } else {
+                        this.x += (dx >= 0 ? 1 : -1) * 0.4;
+                    }
                 }
             }
         }
 
-        const halfW = this.w * 0.5;
+        const halfW = Math.min(this.w * 0.5, width * 0.42);
         const halfH = this.h * 0.5;
         const topLimit = Math.max(halfH + 12, 72);
         const bottomLimit = Math.max(topLimit + 40, height - halfH - 16);
 
         if (this.x - halfW <= 4 && this.vx < 0) {
-            this.x = halfW + 4;
+            this.x = halfW + 6;
             this.vx = Math.abs(this.vx);
         } else if (this.x + halfW >= width - 4 && this.vx > 0) {
-            this.x = width - halfW - 4;
+            this.x = width - halfW - 6;
             this.vx = -Math.abs(this.vx);
         }
 
@@ -438,9 +441,11 @@ async function init() {
         const copies = def.key === 'img3140' ? 1 : 2;
         for (let copy = 0; copy < copies; copy++) {
             const dir = copy === 0 ? (idx % 2 === 0 ? 1 : -1) : -1;
-            const startX = copy === 0
-                ? width * (0.18 + (idx % 4) * 0.2)
-                : width * (0.55 + (idx % 3) * 0.14);
+            const startX = def.key === 'img3140'
+                ? width * 0.5
+                : (copy === 0
+                    ? width * (0.18 + (idx % 4) * 0.2)
+                    : width * (0.55 + (idx % 3) * 0.14));
             const laneOffset = copy === 0 ? 0 : (idx % 2 === 0 ? -0.025 : 0.025);
             const finalLaneY = Math.min(0.86, Math.max(0.24, def.laneY + laneOffset));
 
