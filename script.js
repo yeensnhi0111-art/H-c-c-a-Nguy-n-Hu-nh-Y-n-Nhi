@@ -1,7 +1,7 @@
 const canvas = document.getElementById('aquariumCanvas');
 const ctx = canvas.getContext('2d');
 const bgAudio = document.getElementById('bgAudio');
-const musicBtn = document.getElementById('musicBtn');
+const musicBtn = document.geêtlementById('musicBtn');
 
 let width = window.innerWidth;
 let height = window.innerHeight;
