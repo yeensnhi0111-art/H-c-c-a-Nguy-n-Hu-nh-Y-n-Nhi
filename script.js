@@ -68,7 +68,7 @@ if (bgAudio) {
 
 // ================= CẤU HÌNH SINH VẬT (GIỮ NGUYÊN THÔNG SỐ SIZE) =================
 const creatureDefs = [
-    { key: 'img3140', src: 'IMG_3140.jpeg', facing: 'right', size: 350, speed: 1.55, laneY: 0.36 },
+    { key: 'img3140', src: 'IMG_3140.jpeg', facing: 'right', size: 350, speed: 1.75, laneY: 0.36 },
     { key: 'img3100', src: 'IMG_3100.jpeg', facing: 'right', size: 65,  speed: 1.35, laneY: 0.50 },
     { key: 'img3101', src: 'IMG_3101.jpeg', facing: 'right', size: 25,  speed: 1.45, laneY: 0.43 },
     { key: 'img3103', src: 'IMG_3103.jpeg', facing: 'right', size: 25,  speed: 1.65, laneY: 0.58 },
