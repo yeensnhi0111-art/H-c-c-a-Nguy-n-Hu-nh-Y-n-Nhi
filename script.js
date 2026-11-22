@@ -69,12 +69,12 @@ if (bgAudio) {
 // ================= CẤU HÌNH SINH VẬT (GIỮ NGUYÊN THÔNG SỐ SIZE) =================
 const creatureDefs = [
     { key: 'img3140', src: 'IMG_3140.jpeg', facing: 'right', size: 300, speed: 1.55, laneY: 0.36 },
-    { key: 'img3100', src: 'IMG_3100.jpeg', facing: 'right', size: 85,  speed: 1.35, laneY: 0.50 },
+    { key: 'img3100', src: 'IMG_3100.jpeg', facing: 'right', size: 75,  speed: 1.35, laneY: 0.50 },
     { key: 'img3101', src: 'IMG_3101.jpeg', facing: 'right', size: 25,  speed: 1.45, laneY: 0.43 },
     { key: 'img3103', src: 'IMG_3103.jpeg', facing: 'right', size: 25,  speed: 1.65, laneY: 0.58 },
     { key: 'img3104', src: 'IMG_3104.jpeg', facing: 'left',  size: 45,  speed: 1.35, laneY: 0.65 },
     { key: 'img3105', src: 'IMG_3105.jpeg', facing: 'left',  size: 45,  speed: 1.50, laneY: 0.72 },
-    { key: 'img3114', src: 'IMG_3114.jpeg', facing: 'right', size: 80,  speed: 1.20, laneY: 0.80 },
+    { key: 'img3114', src: 'IMG_3114.jpeg', facing: 'right', size: 75,  speed: 1.20, laneY: 0.80 },
     { key: 'img3127', src: 'IMG_3127.jpeg', facing: 'right', size: 135, speed: 1.45, laneY: 0.33 },
     { key: 'img3130', src: 'IMG_3130.jpeg', facing: 'right', size: 35,  speed: 1.55, laneY: 0.54 },
     { key: 'img3131', src: 'IMG_3131.jpeg', facing: 'left',  size: 30,  speed: 1.40, laneY: 0.85 },
